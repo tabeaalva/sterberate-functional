@@ -8,7 +8,14 @@ public class Rechner {
     public long filterByWochentag(List<Sterberate> sterberateListe, String targetWochentag) {
         long filteredCount = sterberateListe.stream()
                 .filter(sterberate -> sterberate.getWochentag().equals(targetWochentag))
-                
+                .peek(sterberate -> {
+                    System.out.println("Jahr: " + sterberate.getJahr());
+                    System.out.println("Monat: " + sterberate.getMonat());
+                    System.out.println("Wochentag: " + sterberate.getWochentag());
+                    System.out.println("Sterbedatum: " + sterberate.getSterbedatum());
+                    System.out.println("Anz Total: " + sterberate.getAnzTotal());
+                    System.out.println();
+                })
                 .count();
 
         System.out.println("Anzahl der Todesfälle an " + targetWochentag + ": " + filteredCount);
