@@ -5,6 +5,12 @@ import java.util.Scanner;
 
 public class GUI {
 
+    /**
+     * Diese Methode zeigt ein Menü zur Analyse von Sterbedaten in der Konsole an und ruft entsprechende
+     * Methoden des `Rechner`-Objekts auf, um die gewählte Analyse durchzuführen.
+     *
+     * @param sterberateListe   Die Liste der Sterberaten, die analysiert werden sollen.
+     */
     public static void KonsoleAnzeige(List<Sterberate> sterberateListe) {
         Scanner scanner = new Scanner(System.in);
 
@@ -20,7 +26,7 @@ public class GUI {
         scanner.nextLine(); // Verbrauche das Zeilenende nach der Eingabe.
 
         Rechner rechner = new Rechner();
-        
+
         switch (choice) {
             case 1:
                 System.out.print("Geben Sie den gewünschten Wochentag ein (z.B. 'Mi'): ");

@@ -1,41 +1,74 @@
 package ch.bbzbl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Rechner {
 
-    public long filterByWochentag(List<Sterberate> sterberateListe, String targetWochentag) {
-        long filteredCount = sterberateListe.stream()
+    /**
+     * Diese Methode filtert Sterberaten nach einem bestimmten Wochentag und zeigt die Summe der Todesfälle pro Jahr an.
+     *
+     * @param sterberateListe   Die Liste der Sterberaten, die analysiert werden sollen.
+     * @param targetWochentag   Der Wochentag, nach dem gefiltert werden soll (z.B. "Mo" für Montag).
+     */
+    public void filterByWochentag(List<Sterberate> sterberateListe, String targetWochentag) {
+        Map<String, Integer> yearToDeathCount = sterberateListe.stream()
                 .filter(sterberate -> sterberate.getWochentag().equals(targetWochentag))
-                .peek(sterberate -> {
-                    System.out.println("Jahr: " + sterberate.getJahr());
-                    System.out.println("Monat: " + sterberate.getMonat());
-                    System.out.println("Wochentag: " + sterberate.getWochentag());
-                    System.out.println("Sterbedatum: " + sterberate.getSterbedatum());
-                    System.out.println("Anz Total: " + sterberate.getAnzTotal());
-                    System.out.println();
-                })
-                .count();
+                .collect(Collectors.groupingBy(Sterberate::getJahr,
+                        Collectors.summingInt(Sterberate::getAnz_total)));
 
-        System.out.println("Anzahl der Todesfälle an " + targetWochentag + ": " + filteredCount);
-        return filteredCount;
+        yearToDeathCount.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    String year = entry.getKey();
+                    int deathCount = entry.getValue();
+                    System.out.println(targetWochentag + " (" + year + ") : " + deathCount);
+                });
     }
 
+    /**
+     * Diese Methode findet die Woche in einem bestimmten Jahr mit den meisten Todesfällen.
+     *
+     * @param sterberateListe   Die Liste der Sterberaten, die analysiert werden sollen.
+     * @param year              Das Jahr, für das die höchste Todesfallwoche gefunden werden soll.
+     */
     public void findMaxWeekValueForYear(List<Sterberate> sterberateListe, int year) {
-        int maxWeekValue = sterberateListe.stream()
+        Map<Integer, Integer> weekToDeathCount = sterberateListe.stream()
                 .filter(sterberate -> Integer.parseInt(sterberate.getJahr()) == year)
-                .map(sterberate -> Integer.parseInt(sterberate.getSterbedatum().split("-")[1]))
-                .max(Integer::compare)
-                .orElse(0);
-        System.out.println("Höchster Wochenwert für das Jahr " + year + ": " + maxWeekValue);
+                .collect(Collectors.groupingBy(Sterberate::getWoche_in_jahr,
+                        Collectors.summingInt(Sterberate::getAnz_total)));
+
+        weekToDeathCount.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    int week = entry.getKey();
+                    int deathCount = entry.getValue();
+                    System.out.println("Woche " + week + " = " + deathCount + " (Anzahl Tode)");
+                });
+
+        int maxDeathCount = weekToDeathCount.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        int maxWeek = weekToDeathCount.entrySet().stream()
+                .filter(entry -> entry.getValue() == maxDeathCount)
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(-1);
+
+        System.out.println("Die Woche mit dem Höchsten Wert war: Woche " + maxWeek + " = " + maxDeathCount);
     }
 
+    /**
+     * Diese Methode berechnet die Gesamtzahl der Todesfälle in einem bestimmten Jahr.
+     *
+     * @param sterberateListe   Die Liste der Sterberaten, die analysiert werden sollen.
+     * @param targetYear        Das Jahr, für das die Gesamtzahl der Todesfälle ermittelt werden soll.
+     */
     public void calculateTotalDeathsForYear(List<Sterberate> sterberateListe, int targetYear) {
         int totalDeaths = sterberateListe.stream()
                 .filter(sterberate -> Integer.parseInt(sterberate.getJahr()) == targetYear)
-                .map(sterberate -> Integer.parseInt(sterberate.getAnzTotal()))
-                .reduce(0, Integer::sum);
+                .mapToInt(Sterberate::getAnz_total)
+                .sum();
 
         System.out.println("Gesamtzahl der Todesfälle im Jahr " + targetYear + ": " + totalDeaths);
     }
